@@ -11,6 +11,7 @@ import {
   Connection,
   BackgroundVariant,
   useReactFlow,
+  MarkerType,
 } from '@xyflow/react';
 import { ProcessNode, ProcessEdge, StartEndData, Visualization } from './types';
 import ComponentPalette from './components/ComponentPalette';
@@ -58,6 +59,12 @@ const sampleVisualizations: Visualization[] = [
         animated: true,
         label: 'Click to proceed',
         fontSize: 11,
+        arrowDirection: 'forward',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#6b7280',
+        },
+        style: { stroke: '#6b7280', strokeWidth: 2 },
         labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
         labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
         labelBgPadding: [7.7, 11],
@@ -105,6 +112,17 @@ const sampleVisualizations: Visualization[] = [
         animated: true,
         label: 'Authenticate user',
         fontSize: 11,
+        arrowDirection: 'bidirectional',
+        markerStart: {
+          type: MarkerType.ArrowClosed,
+          color: '#6b7280',
+          orient: 'auto-start-reverse',
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#6b7280',
+        },
+        style: { stroke: '#6b7280', strokeWidth: 2 },
         labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
         labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
         labelBgPadding: [7.7, 11],
@@ -174,11 +192,17 @@ const FlowContent = () => {
       const newEdge = {
         ...params,
         fontSize: 11,
+        arrowDirection: 'forward',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#6b7280',
+        },
+        style: { stroke: '#6b7280', strokeWidth: 2 },
         labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
         labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
-        labelBgPadding: [4.4, 6.6]
+        labelBgPadding: [7.7, 11]
       };
-      const newEdges = addEdge(newEdge, edges);
+      const newEdges = addEdge(newEdge, edges) as any[];
       setEdges(newEdges);
       console.log('🔗 New connection created:', newEdge);
     },

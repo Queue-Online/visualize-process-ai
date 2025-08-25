@@ -57,4 +57,15 @@
     stroke-width: 1;
     rx: 3;
   }
+
+  /* Ensure arrow markers are visible */
+  .react-flow__edge path {
+    stroke: #6b7280;
+    stroke-width: 2;
+  }
+
+  .react-flow__edge.selected path {
+    stroke: #3b82f6;
+    stroke-width: 3;
+  }
 }

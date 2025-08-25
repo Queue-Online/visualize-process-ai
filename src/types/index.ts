@@ -80,6 +80,12 @@ export interface ProcessEdge extends Edge {
   animated?: boolean;
   style?: React.CSSProperties;
   fontSize?: number;
+  markerStart?: any;
+  markerEnd?: any;
+  arrowDirection?: 'forward' | 'backward' | 'bidirectional' | 'none';
+  labelStyle?: React.CSSProperties;
+  labelBgStyle?: any;
+  labelBgPadding?: [number, number];
 }
 
 // Component palette item

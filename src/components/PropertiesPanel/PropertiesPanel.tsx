@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Trash2, Copy, ArrowRight } from 'lucide-react';
+import { MarkerType } from '@xyflow/react';
 import { ProcessNode, ProcessEdge } from '../../types';
 
 interface PropertiesPanelProps {
@@ -20,6 +21,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ selectedNode, selecte
         label: selectedEdge.label || '',
         animated: selectedEdge.animated || false,
         fontSize: selectedEdge.fontSize || 11,
+        arrowDirection: selectedEdge.arrowDirection || 'forward',
         style: selectedEdge.style || {},
         labelStyle: selectedEdge.labelStyle || {},
         labelBgStyle: selectedEdge.labelBgStyle || {},
@@ -43,6 +45,47 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ selectedNode, selecte
         updatedEdge.label = value;
       } else if (field === 'animated') {
         updatedEdge.animated = value;
+      } else if (field === 'arrowDirection') {
+        updatedEdge.arrowDirection = value;
+        // Ensure edge style is set for markers to show
+        updatedEdge.style = {
+          ...updatedEdge.style,
+          stroke: '#6b7280',
+          strokeWidth: 2
+        };
+        // Set marker properties based on direction
+        switch (value) {
+          case 'forward':
+            updatedEdge.markerEnd = {
+              type: MarkerType.ArrowClosed,
+              color: '#6b7280',
+            };
+            updatedEdge.markerStart = undefined;
+            break;
+          case 'backward':
+            updatedEdge.markerStart = {
+              type: MarkerType.ArrowClosed,
+              color: '#6b7280',
+              orient: 'auto-start-reverse',
+            };
+            updatedEdge.markerEnd = undefined;
+            break;
+          case 'bidirectional':
+            updatedEdge.markerStart = {
+              type: MarkerType.ArrowClosed,
+              color: '#6b7280',
+              orient: 'auto-start-reverse',
+            };
+            updatedEdge.markerEnd = {
+              type: MarkerType.ArrowClosed,
+              color: '#6b7280',
+            };
+            break;
+          case 'none':
+            updatedEdge.markerStart = undefined;
+            updatedEdge.markerEnd = undefined;
+            break;
+        }
       } else if (field === 'fontSize') {
         const fontSize = parseInt(value) || 11;
         updatedEdge.fontSize = fontSize;
@@ -267,6 +310,21 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ selectedNode, selecte
                   />
                   <span className="text-sm text-gray-600 min-w-[2rem]">{localData.fontSize || 11}px</span>
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="arrow-direction" className="block text-sm font-medium text-gray-700 mb-1">Arrow Direction</label>
+                <select
+                  id="arrow-direction"
+                  value={localData.arrowDirection || 'forward'}
+                  onChange={(e) => handleInputChange('arrowDirection', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="forward">→ Forward</option>
+                  <option value="backward">← Backward</option>
+                  <option value="bidirectional">↔ Bidirectional</option>
+                  <option value="none">— No Arrows</option>
+                </select>
               </div>
               
               <div className="mb-4">
