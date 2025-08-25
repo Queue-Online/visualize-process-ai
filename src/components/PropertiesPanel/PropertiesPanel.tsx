@@ -23,7 +23,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ selectedNode, selecte
         style: selectedEdge.style || {},
         labelStyle: selectedEdge.labelStyle || {},
         labelBgStyle: selectedEdge.labelBgStyle || {},
-        labelBgPadding: selectedEdge.labelBgPadding || [4.4, 6.6]
+        labelBgPadding: selectedEdge.labelBgPadding || [7.7, 11]
       });
     }
   }, [selectedNode, selectedEdge]);
@@ -53,14 +53,15 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ selectedNode, selecte
           fill: '#374151'
         };
         // Update labelBgStyle to resize background box based on font size
-        const padding = Math.max(3, fontSize * 0.4); // Dynamic padding based on font size
+        const verticalPadding = Math.max(4, fontSize * 0.7); // More generous vertical padding
+        const horizontalPadding = Math.max(6, fontSize * 1.0); // Even more horizontal padding
         updatedEdge.labelBgStyle = {
           fill: 'white',
           fillOpacity: 0.9,
           stroke: '#e5e7eb',
           strokeWidth: 1
         } as any; // SVG properties require any type
-        updatedEdge.labelBgPadding = [padding, padding * 1.5]; // [vertical, horizontal] padding
+        updatedEdge.labelBgPadding = [verticalPadding, horizontalPadding]; // [vertical, horizontal] padding
       }
       onUpdateEdge(updatedEdge);
     }
