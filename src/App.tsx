@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
+  ReactFlowProvider,
   MiniMap,
   Controls,
   Background,
@@ -9,6 +10,7 @@ import {
   addEdge,
   Connection,
   BackgroundVariant,
+  useReactFlow,
 } from '@xyflow/react';
 import { ProcessNode, StartEndData, Visualization } from './types';
 import ComponentPalette from './components/ComponentPalette';
@@ -101,13 +103,14 @@ const sampleVisualizations: Visualization[] = [
   },
 ];
 
-function App() {
+const FlowContent = () => {
   const [visualizations, setVisualizations] = useState<Visualization[]>(sampleVisualizations);
   const [currentVisualization, setCurrentVisualization] = useState<Visualization>(sampleVisualizations[0]);
   const [nodes, setNodes, onNodesChange] = useNodesState(currentVisualization.nodes as any);
   const [edges, setEdges, onEdgesChange] = useEdgesState(currentVisualization.edges);
   const [selectedNode, setSelectedNode] = useState<ProcessNode | null>(null);
   const [showNewVisualizationModal, setShowNewVisualizationModal] = useState(false);
+  const { screenToFlowPosition } = useReactFlow();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -157,6 +160,45 @@ function App() {
     setEdges(viz.edges);
     setSelectedNode(null);
   }, [setNodes, setEdges]);
+
+  // Drag and drop handlers
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const nodeData = event.dataTransfer.getData('application/reactflow');
+      if (!nodeData) return;
+
+      try {
+        const parsedData = JSON.parse(nodeData);
+        
+        // Use React Flow's screenToFlowPosition for accurate positioning
+        const position = screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        const newNode = {
+          id: `node-${Date.now()}`,
+          type: parsedData.type,
+          position,
+          data: parsedData,
+        };
+
+        setNodes((nds) => nds.concat(newNode as any));
+      } catch (error) {
+        console.error('Error parsing dropped node data:', error);
+      }
+    },
+    [setNodes, screenToFlowPosition]
+  );
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -221,7 +263,14 @@ function App() {
       </div>
 
       {/* Main Flow Canvas */}
-      <div className="flex-1 relative">
+      <div 
+        ref={reactFlowWrapper}
+        className="flex-1 relative"
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        role="application"
+        aria-label="Process flow canvas - drop components here"
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -321,6 +370,14 @@ function App() {
         </div>
       )}
     </div>
+  );
+};
+
+function App() {
+  return (
+    <ReactFlowProvider>
+      <FlowContent />
+    </ReactFlowProvider>
   );
 }
 

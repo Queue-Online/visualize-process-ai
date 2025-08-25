@@ -116,7 +116,7 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddNode = (item: PaletteItem) => {
+  const createNodeData = (item: PaletteItem): ProcessNodeData & { type: NodeType } => {
     const baseData = {
       label: item.label,
       icon: item.icon,
@@ -179,7 +179,17 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
         } as StartEndData & { type: NodeType };
     }
 
-    onAddNode(nodeData);
+    return nodeData;
+  };
+
+  const handleAddNode = (item: PaletteItem) => {
+    onAddNode(createNodeData(item));
+  };
+
+  const onDragStart = (event: React.DragEvent, item: PaletteItem) => {
+    const nodeData = createNodeData(item);
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeData));
+    event.dataTransfer.effectAllowed = 'move';
   };
 
   return (
@@ -226,10 +236,21 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <button
+            <div
               key={item.id}
+              draggable
+              onDragStart={(event) => onDragStart(event, item)}
               onClick={() => handleAddNode(item)}
-              className="w-full p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all bg-white text-left"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleAddNode(item);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Add ${item.label} component to canvas`}
+              className="w-full p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all bg-white text-left cursor-pointer select-none"
             >
               <div className="flex items-center gap-3">
                 <div 
@@ -242,8 +263,11 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
                   <h3 className="font-medium text-gray-900 text-sm">{item.label}</h3>
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                 </div>
+                <div className="text-gray-400 text-xs">
+                  Drag or click
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
