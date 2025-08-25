@@ -236,19 +236,11 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <div
+            <button
               key={item.id}
               draggable
               onDragStart={(event) => onDragStart(event, item)}
               onClick={() => handleAddNode(item)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  handleAddNode(item);
-                }
-              }}
-              role="button"
-              tabIndex={0}
               aria-label={`Add ${item.label} component to canvas`}
               className="w-full p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all bg-white text-left cursor-pointer select-none"
             >
@@ -267,7 +259,7 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
                   Drag or click
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
