@@ -99,6 +99,17 @@ export interface FlowState {
   selectedNode: ProcessNode | null;
 }
 
+// Visualization project
+export interface Visualization {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  nodes: ProcessNode[];
+  edges: ProcessEdge[];
+}
+
 // App configuration
 export interface AppConfig {
   gridSize: number;
