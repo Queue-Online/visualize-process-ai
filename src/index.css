@@ -35,4 +35,26 @@
   .react-flow__handle:hover {
     @apply bg-primary-500;
   }
+
+  /* Edge label styling */
+  .react-flow__edge-text {
+    font-size: 11px;
+    font-weight: 500;
+    fill: #374151;
+    dominant-baseline: central;
+    text-anchor: middle;
+  }
+  
+  /* Allow inline styles to override */
+  .react-flow__edge-text[style*="font-size"] {
+    font-size: inherit !important;
+  }
+  
+  .react-flow__edge-textbg {
+    fill: white;
+    fill-opacity: 0.9;
+    stroke: #e5e7eb;
+    stroke-width: 1;
+    rx: 3;
+  }
 }
