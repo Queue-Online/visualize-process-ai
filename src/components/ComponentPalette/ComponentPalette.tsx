@@ -194,7 +194,7 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
           <input
             type="text"
             placeholder="Search components..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -210,7 +210,7 @@ const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddNode }) => {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   selectedCategory === category.id
-                    ? 'bg-blue-100 text-blue-700'
+                    ? 'bg-primary-100 text-primary-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
