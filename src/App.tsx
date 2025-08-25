@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -112,9 +112,57 @@ const FlowContent = () => {
   const [showNewVisualizationModal, setShowNewVisualizationModal] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
 
+  // Function to save current visualization state as JSON
+  const saveVisualizationAsJSON = useCallback((updatedNodes?: any[], updatedEdges?: any[]) => {
+    const currentNodes = updatedNodes || nodes;
+    const currentEdges = updatedEdges || edges;
+    
+    const visualizationData = {
+      ...currentVisualization,
+      nodes: currentNodes,
+      edges: currentEdges,
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        nodeCount: currentNodes.length,
+        edgeCount: currentEdges.length,
+        lastModified: new Date().toISOString(),
+        version: '1.0.0'
+      }
+    };
+
+    // Log to console for now (later this will save to database)
+    console.log('🔄 Visualization Updated:', visualizationData.name);
+    console.log('📊 JSON Data:', JSON.stringify(visualizationData, null, 2));
+    console.log('📈 Stats:', {
+      nodes: currentNodes.length,
+      edges: currentEdges.length,
+      lastChange: new Date().toLocaleTimeString()
+    });
+
+    return visualizationData;
+  }, [currentVisualization, nodes, edges]);
+
+  // Watch for node changes and save to JSON
+  useEffect(() => {
+    if (nodes.length > 0) {
+      saveVisualizationAsJSON(nodes, edges);
+    }
+  }, [nodes, saveVisualizationAsJSON, edges]);
+
+  // Watch for edge changes and save to JSON
+  useEffect(() => {
+    if (edges.length > 0 || nodes.length > 0) {
+      saveVisualizationAsJSON(nodes, edges);
+    }
+  }, [edges, saveVisualizationAsJSON, nodes]);
+
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      const newEdges = addEdge(params, edges);
+      setEdges(newEdges);
+      console.log('🔗 New connection created:', params);
+    },
+    [setEdges, edges]
   );
 
   const onNodeClick = useCallback(
@@ -147,6 +195,7 @@ const FlowContent = () => {
       edges: [],
     };
     
+    console.log('🆕 New visualization created:', newVisualization);
     setVisualizations(prev => [...prev, newVisualization]);
     setCurrentVisualization(newVisualization);
     setNodes(newVisualization.nodes as any);
@@ -155,6 +204,13 @@ const FlowContent = () => {
   }, [setNodes, setEdges]);
 
   const switchVisualization = useCallback((viz: Visualization) => {
+    console.log('🔄 Switched to visualization:', viz.name);
+    console.log('📊 Loaded data:', {
+      id: viz.id,
+      nodes: viz.nodes.length,
+      edges: viz.edges.length,
+      createdAt: viz.createdAt
+    });
     setCurrentVisualization(viz);
     setNodes(viz.nodes as any);
     setEdges(viz.edges);
@@ -192,6 +248,7 @@ const FlowContent = () => {
           data: parsedData,
         };
 
+        console.log('🎯 New node added via drag & drop:', newNode);
         setNodes((nds) => nds.concat(newNode as any));
       } catch (error) {
         console.error('Error parsing dropped node data:', error);
@@ -258,6 +315,7 @@ const FlowContent = () => {
             position: { x: Math.random() * 400 + 200, y: Math.random() * 300 + 100 },
             data: { ...nodeData, label: nodeData.label },
           };
+          console.log('➕ New node added via palette:', newNode);
           setNodes((nds) => nds.concat(newNode as any));
         }} />
       </div>
@@ -300,6 +358,7 @@ const FlowContent = () => {
         <PropertiesPanel 
           selectedNode={selectedNode}
           onUpdateNode={(updatedNode: any) => {
+            console.log('✏️ Node updated via properties panel:', updatedNode);
             setNodes((nds) =>
               nds.map((node) =>
                 node.id === updatedNode.id ? updatedNode : node
