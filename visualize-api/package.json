@@ -1,0 +1,31 @@
+{
+  "name": "visualize-process-ai-api",
+  "version": "1.0.0",
+  "description": "AI Readability Layer API for Visualize Process AI - Enables MCP tools to read and understand process diagrams",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "process",
+    "visualization",
+    "ai",
+    "mcp",
+    "readability"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
