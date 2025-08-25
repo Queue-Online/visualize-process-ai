@@ -79,6 +79,7 @@ export interface ProcessEdge extends Edge {
   label?: string;
   animated?: boolean;
   style?: React.CSSProperties;
+  fontSize?: number;
 }
 
 // Component palette item

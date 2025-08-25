@@ -12,7 +12,7 @@ import {
   BackgroundVariant,
   useReactFlow,
 } from '@xyflow/react';
-import { ProcessNode, StartEndData, Visualization } from './types';
+import { ProcessNode, ProcessEdge, StartEndData, Visualization } from './types';
 import ComponentPalette from './components/ComponentPalette';
 import PropertiesPanel from './components/PropertiesPanel';
 
@@ -56,6 +56,11 @@ const sampleVisualizations: Visualization[] = [
         source: '1',
         target: '2',
         animated: true,
+        label: 'Click to proceed',
+        fontSize: 11,
+        labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
+        labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
+        labelBgPadding: [4.4, 6.6],
       },
     ],
   },
@@ -98,6 +103,11 @@ const sampleVisualizations: Visualization[] = [
         source: '1',
         target: '2',
         animated: true,
+        label: 'Authenticate user',
+        fontSize: 11,
+        labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
+        labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
+        labelBgPadding: [4.4, 6.6],
       },
     ],
   },
@@ -109,7 +119,10 @@ const FlowContent = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(currentVisualization.nodes as any);
   const [edges, setEdges, onEdgesChange] = useEdgesState(currentVisualization.edges);
   const [selectedNode, setSelectedNode] = useState<ProcessNode | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<ProcessEdge | null>(null);
   const [showNewVisualizationModal, setShowNewVisualizationModal] = useState(false);
+  const [showEdgeTextModal, setShowEdgeTextModal] = useState(false);
+  const [edgeText, setEdgeText] = useState('');
   const { screenToFlowPosition } = useReactFlow();
 
   // Function to save current visualization state as JSON
@@ -158,9 +171,16 @@ const FlowContent = () => {
 
   const onConnect = useCallback(
     (params: Connection) => {
-      const newEdges = addEdge(params, edges);
+      const newEdge = {
+        ...params,
+        fontSize: 11,
+        labelStyle: { fontSize: '11px', fontWeight: '500', fill: '#374151' },
+        labelBgStyle: { fill: 'white', fillOpacity: 0.9, stroke: '#e5e7eb', strokeWidth: 1 } as any,
+        labelBgPadding: [4.4, 6.6]
+      };
+      const newEdges = addEdge(newEdge, edges);
       setEdges(newEdges);
-      console.log('🔗 New connection created:', params);
+      console.log('🔗 New connection created:', newEdge);
     },
     [setEdges, edges]
   );
@@ -168,9 +188,71 @@ const FlowContent = () => {
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: any) => {
       setSelectedNode(node as ProcessNode);
+      setSelectedEdge(null); // Clear edge selection when node is selected
     },
     []
   );
+
+  const onEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: any) => {
+      setSelectedEdge(edge);
+      setSelectedNode(null); // Clear node selection when edge is selected
+      console.log('🔗 Edge selected:', edge);
+    },
+    []
+  );
+
+  const onEdgeDoubleClick = useCallback(
+    (_: React.MouseEvent, edge: any) => {
+      setSelectedEdge(edge);
+      setEdgeText(edge.label || '');
+      setShowEdgeTextModal(true);
+      console.log('🔗 Edge double-clicked for editing:', edge);
+    },
+    []
+  );
+
+  const updateEdgeLabel = useCallback((edgeId: string, newLabel: string) => {
+    setEdges((eds) =>
+      eds.map((edge) =>
+        edge.id === edgeId ? { ...edge, label: newLabel } : edge
+      )
+    );
+    console.log('🏷️ Edge label updated:', { edgeId, newLabel });
+  }, [setEdges]);
+
+  const handleEdgeTextSave = useCallback(() => {
+    if (selectedEdge) {
+      updateEdgeLabel(selectedEdge.id, edgeText);
+      setShowEdgeTextModal(false);
+      setEdgeText('');
+      setSelectedEdge(null);
+    }
+  }, [selectedEdge, edgeText, updateEdgeLabel]);
+
+  const onUpdateEdge = useCallback((updatedEdge: any) => {
+    setEdges((eds) =>
+      eds.map((edge) =>
+        edge.id === updatedEdge.id ? updatedEdge : edge
+      )
+    );
+    setSelectedEdge(updatedEdge);
+    console.log('📝 Edge updated via properties panel:', updatedEdge);
+  }, [setEdges]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && selectedEdge && !showEdgeTextModal) {
+        event.preventDefault();
+        setEdgeText(selectedEdge.label || '');
+        setShowEdgeTextModal(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEdge, showEdgeTextModal]);
 
   const createNewVisualization = useCallback((name: string, description?: string) => {
     const newVisualization: Visualization = {
@@ -336,6 +418,8 @@ const FlowContent = () => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
+          onEdgeClick={onEdgeClick}
+          onEdgeDoubleClick={onEdgeDoubleClick}
           fitView
           className="bg-gray-50"
         >
@@ -357,6 +441,7 @@ const FlowContent = () => {
       <div className="w-80 bg-white border-l border-gray-200 shadow-sm">
         <PropertiesPanel 
           selectedNode={selectedNode}
+          selectedEdge={selectedEdge}
           onUpdateNode={(updatedNode: any) => {
             console.log('✏️ Node updated via properties panel:', updatedNode);
             setNodes((nds) =>
@@ -366,9 +451,57 @@ const FlowContent = () => {
             );
             setSelectedNode(updatedNode);
           }}
+          onUpdateEdge={onUpdateEdge}
         />
       </div>
       </div>
+
+      {/* Edge Text Editing Modal */}
+      {showEdgeTextModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Edit Arrow Text</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleEdgeTextSave();
+            }}>
+              <div className="mb-6">
+                <label htmlFor="edge-text" className="block text-sm font-medium text-gray-700 mb-2">
+                  Arrow Label
+                </label>
+                <input
+                  id="edge-text"
+                  type="text"
+                  value={edgeText}
+                  onChange={(e) => setEdgeText(e.target.value)}
+                  placeholder="Enter text for this arrow..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEdgeTextModal(false);
+                    setEdgeText('');
+                    setSelectedEdge(null);
+                  }}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* New Visualization Modal */}
       {showNewVisualizationModal && (
